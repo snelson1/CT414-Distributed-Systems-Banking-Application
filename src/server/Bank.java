@@ -33,7 +33,6 @@ public class Bank extends UnicastRemoteObject implements BankInterface {
     public static void main(String args[]) throws Exception {
         try {
             //Set up securitymanager for server, and specify path to the policy file
-            System.setProperty("java.security.policy", "file:/D:/Projects/CT414-Distributed-Systems-Banking-Application/src/all.policy");
             System.setSecurityManager(new SecurityManager());
             System.out.println("\n--------------------\nSecurity Manager Set");
 
