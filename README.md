@@ -26,10 +26,12 @@ For simplicity, in this assignment you do not need to consider the synchronizati
 3) Now all the files are compiled. The next step is to start the rmiregistry:
 - type `rmiregistry 7777` (can be any port, this will start the registry on port 7777)
 
-4) In a new console tab start the server:
+4) Note: You will need to change the `all.policy` file to update the path to be the path to the `src` directory on your machine to make the RMI SecurityManager work. There is an example `all.policy` file included as an example.
+
+5) In a new console tab start the server:
 - type `java -Djava.security.policy=all.policy server.Bank 7777` (needs to be the same port as the rmiregistry.
 
-5) In a new console tab start the client and use client actions:
+6) In a new console tab start the client and use client actions:
 - type `java client.ATM localhost 7777 login user1 pass1` (this will open the client and create a session in the server.
 
 
