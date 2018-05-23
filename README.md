@@ -60,6 +60,7 @@ The assignment should be done in groups of two students. Where the assignment is
 
 The ATM client application can be run at the command line using the parameters shown and a full GUI based client application is not required. The first operation that is called is login and if this succeeds a session ID is returned which is then valid for some predefined time period. This session ID then acts as an authentication token that must be passed for each of the other remote methods. Running the application will then look something like this:
 
+```
 C:\>rmiregistry 7777
 
 Then, start the server
@@ -89,3 +90,4 @@ The current balance of account 100 is €1150
 C:\>java ATM localhost 7777 statement 100 01/10/2016 31/12/2016
 
 The statement for account 100 for the period shown is returned and printed out using the accessor methods in the statement object
+```
