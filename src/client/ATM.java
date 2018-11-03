@@ -13,7 +13,8 @@ import java.util.Date;
 
 //Client program, which connects to the bank using RMI and class methods of the remote bank object
 public class ATM {
-    static int serverAddress, serverPort, account;
+    static String serverAddress;
+    static int serverPort, account;
     static String operation, username, password;
     static long sessionID, id=0;
     static double amount;
@@ -26,7 +27,7 @@ public class ATM {
             getCommandLineArguments(args);
             //Set up the rmi registry and get the remote bank object from it
             String name = "Bank";
-            Registry registry = LocateRegistry.getRegistry(serverPort);
+            Registry registry = LocateRegistry.getRegistry(serverAddress, serverPort);
             bank = (BankInterface) registry.lookup(name);
             System.out.println("\n----------------\nClient Connected" + "\n----------------\n");
         } catch (InvalidArgumentException ie){
@@ -155,6 +156,7 @@ public class ATM {
 
         //Parses arguments from command line
         //arguments are in different places based on operation, so switch needed here
+        serverAddress = args[0];
         serverPort = Integer.parseInt(args[1]);
         operation = args[2];
         switch (operation){

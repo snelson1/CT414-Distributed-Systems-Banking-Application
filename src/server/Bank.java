@@ -39,7 +39,7 @@ public class Bank extends UnicastRemoteObject implements BankInterface {
             //Add bank to the RMI registry so it can be located by the client
             String name = "Bank";
             BankInterface bank = new Bank();
-            Registry registry = LocateRegistry.getRegistry(Integer.parseInt(args[0]));
+            Registry registry = LocateRegistry.getRegistry(args[0], Integer.parseInt(args[1]));
             registry.rebind(name, bank);
             System.out.println("Bank Server Bound");
             System.out.println("Server Stared\n--------------------\n");
