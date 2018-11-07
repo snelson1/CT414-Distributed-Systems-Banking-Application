@@ -170,6 +170,11 @@ public class Bank extends UnicastRemoteObject implements BankInterface {
         //Throw exception if session isn't valid
         throw new InvalidSessionException();
     }
+	
+	@Override
+	public boolean heartbeat() throws RemoteException{
+		return true;
+	}
 
     private Account getAccount(int acnum) throws InvalidAccountException{
         //Loop through the accounts to find one corresponding to account number passed from the client

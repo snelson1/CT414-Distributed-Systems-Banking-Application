@@ -12,6 +12,8 @@ import java.rmi.registry.Registry;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Scanner;
+import java.util.Timer;
+import java.util.TimerTask;
 
 //Client program, which connects to the bank using RMI and class methods of the remote bank object
 public class ATM {
@@ -24,8 +26,8 @@ public class ATM {
     private static Date startDate, endDate;
     private static int timeoutCount = 0;
     private static Account acc;
-
-
+	private static Timer heartbeatTimer;
+	
     public static void main (String args[]) {
         System.out.println("client start");
         System.out.print(">> ");
@@ -69,6 +71,9 @@ public class ATM {
                                 "\n--------------------------\n");
                         System.out.println("Session active for 5 minutes");
                         System.out.println("Use SessionID " + id + " for all other operations");
+						// Heartbeat
+						heartbeatTimer = new Timer();
+						heartbeatTimer.scheduleAtFixedRate (new HeartbeatTask(bank, heartbeatTimer), 0, 1000);
                         //Catch exceptions that can be thrown from the server
                     } catch (RemoteException e) {
                         System.out.println("connect lose");

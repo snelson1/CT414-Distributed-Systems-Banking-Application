@@ -14,4 +14,5 @@ public interface BankInterface extends Remote {
     Account inquiry(int accountnum, long sessionID) throws RemoteException, InvalidSessionException;
     StatementInterface getStatement(int accountnum, Date from, Date to, long sessionID) throws RemoteException, InvalidSessionException, StatementException;
     Account accountDetails(long sessionID) throws RemoteException, InvalidSessionException;
+	boolean heartbeat() throws RemoteException;
 }
