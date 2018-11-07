@@ -47,7 +47,8 @@ public class ATM {
             //Switch based on the operation
             switch (operation){
                 case "exit":
-                    return;
+                    System.out.println("User exit ATM terminal.");
+                    System.exit(0);
 
                 case "login":
                     try {
@@ -73,7 +74,7 @@ public class ATM {
                         System.out.println("Use SessionID " + id + " for all other operations");
 						// Heartbeat
 						heartbeatTimer = new Timer();
-						heartbeatTimer.scheduleAtFixedRate (new HeartbeatTask(bank, heartbeatTimer), 0, 1000);
+						heartbeatTimer.scheduleAtFixedRate (new HeartbeatTask(bank, heartbeatTimer), 0, 5000);
                         //Catch exceptions that can be thrown from the server
                     } catch (RemoteException e) {
                         System.out.println("connect lose");
