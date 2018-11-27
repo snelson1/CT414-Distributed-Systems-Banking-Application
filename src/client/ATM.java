@@ -17,17 +17,57 @@ import java.util.TimerTask;
 
 //Client program, which connects to the bank using RMI and class methods of the remote bank object
 public class ATM {
-    private static String serverAddress;
-    private static int serverPort, account;
+    private static String serverAddress1, serverAddress2;
+    private static int serverPort1, serverPort2, account1, account2;
+    private static String name1, name2;
     private static String operation, username, password;
-    private static long sessionID, id = 0;
+    private static long sessionID1 = 0;
+    private static long sessionID2 = 0;
     private static double amount;
-    private static BankInterface bank;
+    private static BankInterface bank1, bank2;
     private static Date startDate, endDate;
-    private static int timeoutCount = 0;
-    private static Account acc;
-	private static Timer heartbeatTimer;
-	
+    private volatile static long timeoutPeriod;
+    private static Account acc1, acc2;
+    private static Timer heartbeatTimer1;
+    private static Timer heartbeatTimer2;
+    public static int hbCount;
+
+
+
+
+    static class HeartbeatTask extends TimerTask {
+        private BankInterface bank;
+        private Timer heartbeatTimer;
+
+        HeartbeatTask(BankInterface bank, Timer heartbeatTimer)
+        {
+            this.bank = bank;
+            this.heartbeatTimer = heartbeatTimer;
+        }
+
+        public void run() {
+            try{
+                boolean isAlive = bank.heartbeat();
+                //System.out.println("sent heartbeat meesage");
+            }
+            catch(Exception e){
+                System.out.println("Server missing!");
+                this.heartbeatTimer.cancel();
+                this.heartbeatTimer.purge();
+                hbCount++;
+
+               // System.out.println("count is " + hbCount);
+
+                if (hbCount == 2) {
+                    System.exit(0);
+                }
+
+
+                //System.exit(0);
+            }
+        }
+    }
+
     public static void main (String args[]) {
         System.out.println("client start");
         System.out.print(">> ");
@@ -42,7 +82,9 @@ public class ATM {
             String[] commands = line.split(" ");
             //System.out.println(commands);
             getCommandLineArguments(commands);
-            double balance;
+            //double balance;
+
+            System.out.println("login method finish");
 
             //Switch based on the operation
             switch (operation){
@@ -54,30 +96,28 @@ public class ATM {
                     try {
                         //Login with username and password
                         //Set up the rmi registry and get the remote bank object from it
-                        String name = "Bank";
-                        Registry registry = LocateRegistry.getRegistry(serverAddress, serverPort);
-                        bank = (BankInterface) registry.lookup(name);
+                        Registry registry = LocateRegistry.getRegistry(serverAddress1, serverPort1);
+                        bank1 = (BankInterface) registry.lookup(name1);
                         System.out.println("\n----------------\nClient Connected" + "\n----------------\n");
 
-                        id = bank.login(username, password);
-                        acc = bank.accountDetails(id);
-                        sessionID = id;
-                        account = acc.getAccountNumber();
+                        sessionID1 = bank1.login(username, password);
+                        acc1 = bank1.accountDetails(sessionID1);
+                        account1 = acc1.getAccountNumber();
                         //Print account details
                         System.out.println("--------------------------\nAccount Details:\n--------------------------\n" +
-                                "Account Number: " + acc.getAccountNumber() +
-                                "\nSessionID: " + id +
-                                "\nUsername: " + acc.getUserName() +
-                                "\nBalance: " + acc.getBalance() +
+                                "Account Number: " + acc1.getAccountNumber() +
+                                "\nSessionID: " + sessionID1 +
+                                "\nUsername: " + acc1.getUserName() +
+                                "\nBalance: " + acc1.getBalance() +
                                 "\n--------------------------\n");
                         System.out.println("Session active for 5 minutes");
-                        System.out.println("Use SessionID " + id + " for all other operations");
-						// Heartbeat
-						heartbeatTimer = new Timer();
-						heartbeatTimer.scheduleAtFixedRate (new HeartbeatTask(bank, heartbeatTimer), 0, 5000);
+                        System.out.println("Use SessionID " + sessionID1 + " for all other operations");
+                        // Heartbeat
+                        heartbeatTimer1 = new Timer();
+                        heartbeatTimer1.scheduleAtFixedRate (new HeartbeatTask(bank1, heartbeatTimer1), 0, timeoutPeriod);
                         //Catch exceptions that can be thrown from the server
                     } catch (RemoteException e) {
-                        System.out.println("connect lose");
+                        System.out.println("bank 1 connect lose");
                         //e.printStackTrace();
                     } catch (InvalidLoginException e) {
                         System.out.println("User name or password wrong");
@@ -88,58 +128,158 @@ public class ATM {
                     } catch (NotBoundException e) {
                         e.printStackTrace();
                     }
+
+                    try {
+                        //Login with username and password
+                        //Set up the rmi registry and get the remote bank object from it
+                        Registry registry = LocateRegistry.getRegistry(serverAddress2, serverPort2);
+                        bank2 = (BankInterface) registry.lookup(name2);
+                        System.out.println("\n----------------\nClient Connected" + "\n----------------\n");
+
+                        sessionID2 = bank2.login(username, password);
+                        acc2 = bank2.accountDetails(sessionID2);
+                        account2 = acc2.getAccountNumber();
+                        //Print account details
+                        System.out.println("--------------------------\nAccount Details:\n--------------------------\n" +
+                                "Account Number: " + acc2.getAccountNumber() +
+                                "\nSessionID: " + sessionID2 +
+                                "\nUsername: " + acc2.getUserName() +
+                                "\nBalance: " + acc2.getBalance() +
+                                "\n--------------------------\n");
+                        System.out.println("Session active for 5 minutes");
+                        System.out.println("Use SessionID " + sessionID2 + " for all other operations");
+                        // Heartbeat
+                        heartbeatTimer2 = new Timer();
+                        heartbeatTimer2.scheduleAtFixedRate (new HeartbeatTask(bank2, heartbeatTimer2), 0, timeoutPeriod);
+                        //Catch exceptions that can be thrown from the server
+                    } catch (RemoteException e) {
+                        System.out.println("bank 2 connect lose");
+                        //e.printStackTrace();
+                    } catch (InvalidLoginException e) {
+                        System.out.println("User name or password wrong");
+                        //e.printStackTrace();
+                    } catch (InvalidSessionException e) {
+                        System.out.println("Please login again");
+                        //e.printStackTrace();
+                    } catch (NotBoundException e) {
+                        e.printStackTrace();
+                    }
+
                     break;
 
                 case "deposit":
+                    boolean depositSuccess1 = false;
+
                     try {
                         //Make bank deposit and get updated balance
-                        balance = bank.deposit(account, amount, sessionID);
-                        System.out.println("Successfully deposited E" + amount + " into account " + account);
+                        double balance = bank1.deposit(account1, amount, sessionID1);
+                        System.out.println("Successfully deposited E" + amount + " into account " + account1);
                         System.out.println("New balance: E" + balance);
+                        depositSuccess1 = true;
                         //Catch exceptions that can be thrown from the server
                     } catch (RemoteException e) {
-                        System.out.println("connect lose");
+                        System.out.println("bank 1 connect lose");
                         //e.printStackTrace();
                     } catch (InvalidSessionException e) {
-                        System.out.println("Please login again");
+                        System.out.println("Please login bank 1 again");
                         //System.out.println(e.getMessage());
                     }
+
+                    try {
+                        //Make bank deposit and get updated balance
+                        double balance = bank2.deposit(account2, amount, sessionID2);
+                        if (!depositSuccess1) {
+                            System.out.println("Successfully deposited E" + amount + " into account " + account2);
+                            System.out.println("New balance: E" + balance);
+                        }
+                        //Catch exceptions that can be thrown from the server
+                    } catch (RemoteException e) {
+                        System.out.println("bank 2 connect lose");
+                        //e.printStackTrace();
+                    } catch (InvalidSessionException e) {
+                        System.out.println("Please login bank 2 again");
+                        //System.out.println(e.getMessage());
+                    }
+
                     break;
 
                 case "withdraw":
+                    boolean withdrawSuccess1 = false;
                     try {
                         //Make bank withdrawal and get updated balance
-                        balance = bank.withdraw(account, amount, sessionID);
-                        System.out.println("Successfully withdrew E" + amount + " from account " + account +
+                        double balance = bank1.withdraw(account1, amount, sessionID1);
+                        System.out.println("Successfully withdrew E" + amount + " from account " + account1 +
                                 "\nRemaining Balance: E" + balance);
+                        withdrawSuccess1 = true;
                         //Catch exceptions that can be thrown from the server
                     } catch (RemoteException e) {
-                        System.out.println("connect lose");
+                        System.out.println("bank 1 connect lose");
                         //e.printStackTrace();
                     } catch (InvalidSessionException e) {
-                        System.out.println("Please login again");
+                        System.out.println("Please login bank 1 again");
                         //System.out.println(e.getMessage());
                     } catch (InsufficientFundsException e) {
                         System.out.println("Not enough money");
                         //System.out.println(e.getMessage());
                     }
+
+                    try {
+                        //Make bank withdrawal and get updated balance
+                        double balance = bank2.withdraw(account2, amount, sessionID2);
+                        if (!withdrawSuccess1) {
+                            System.out.println("Successfully withdrew E" + amount + " from account " + account2 +
+                                    "\nRemaining Balance: E" + balance);
+                        }
+                        //Catch exceptions that can be thrown from the server
+                    } catch (RemoteException e) {
+                        System.out.println("bank 2 connect lose");
+                        //e.printStackTrace();
+                    } catch (InvalidSessionException e) {
+                        System.out.println("Please login bank 2 again");
+                        //System.out.println(e.getMessage());
+                    } catch (InsufficientFundsException e) {
+                        System.out.println("Not enough money");
+                        //System.out.println(e.getMessage());
+                    }
+
                     break;
 
                 case "inquiry":
+                    boolean inquirySuccess1 = false;
                     try {
                         //Get account details from bank
-                        Account acc = bank.inquiry(account,sessionID);
+                        Account acc1 = bank1.inquiry(account1,sessionID1);
                         System.out.println("--------------------------\nAccount Details:\n--------------------------\n" +
-                                "Account Number: " + acc.getAccountNumber() +
-                                "\nUsername: " + acc.getUserName() +
-                                "\nBalance: E" + acc.getBalance() +
+                                "Account Number: " + acc1.getAccountNumber() +
+                                "\nUsername: " + acc1.getUserName() +
+                                "\nBalance: E" + acc1.getBalance() +
                                 "\n--------------------------\n");
+                        inquirySuccess1 = true;
                         //Catch exceptions that can be thrown from the server
                     } catch (RemoteException e) {
-                        System.out.println("connect lose");
+                        System.out.println("bank 1 connect lose");
                         //e.printStackTrace();
                     } catch (InvalidSessionException e) {
                         System.out.println("Please login again");
+                        //System.out.println(e.getMessage());
+                    }
+
+                    try {
+                        //Get account details from bank
+                        Account acc2 = bank2.inquiry(account2,sessionID2);
+                        if (!inquirySuccess1) {
+                            System.out.println("--------------------------\nAccount Details:\n--------------------------\n" +
+                                    "Account Number: " + acc2.getAccountNumber() +
+                                    "\nUsername: " + acc2.getUserName() +
+                                    "\nBalance: E" + acc2.getBalance() +
+                                    "\n--------------------------\n");
+                        }
+                        //Catch exceptions that can be thrown from the server
+                    } catch (RemoteException e) {
+                        System.out.println("bank 2 connect lose");
+                        //e.printStackTrace();
+                    } catch (InvalidSessionException e) {
+                        System.out.println("Please login  bank2  again");
                         //System.out.println(e.getMessage());
                     }
                     break;
@@ -148,12 +288,12 @@ public class ATM {
                     Statement s = null;
                     try {
                         //Get statement for required dates
-                        s = (Statement) bank.getStatement(account, startDate, endDate, sessionID);
+                        s = (Statement) bank1.getStatement(account1, startDate, endDate, sessionID1);
 
                         //format statement for printing to the window
                         SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
                         System.out.print("-----------------------------------------------------------------------\n");
-                        System.out.println("Statement for Account " + account + " between " +
+                        System.out.println("Statement for Account " + account1 + " between " +
                                 dateFormat.format(startDate) + " and " + dateFormat.format(endDate));
                         System.out.print("-----------------------------------------------------------------------\n");
                         System.out.println("Date\t\t\tTransaction Type\tAmount\t\tBalance");
@@ -165,7 +305,7 @@ public class ATM {
                         System.out.print("-----------------------------------------------------------------------\n");
                         //Catch exceptions that can be thrown from the server
                     } catch (RemoteException e) {
-                        System.out.println("connect lose");
+                        System.out.println("bank 1 connect lose");
                         //e.printStackTrace();
                     } catch (InvalidSessionException e) {
                         System.out.println("Please login again");
@@ -173,6 +313,37 @@ public class ATM {
                     } catch (StatementException e) {
                         System.out.println(e.getMessage());
                     }
+
+                    if (s == null) {
+                        try {
+                            //Get statement for required dates
+                            s = (Statement) bank2.getStatement(account2, startDate, endDate, sessionID2);
+
+                            //format statement for printing to the window
+                            SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+                            System.out.print("-----------------------------------------------------------------------\n");
+                            System.out.println("Statement for Account " + account2 + " between " +
+                                    dateFormat.format(startDate) + " and " + dateFormat.format(endDate));
+                            System.out.print("-----------------------------------------------------------------------\n");
+                            System.out.println("Date\t\t\tTransaction Type\tAmount\t\tBalance");
+                            System.out.print("-----------------------------------------------------------------------\n");
+
+                            for(Object t : s.getTransations()) {
+                                System.out.println(t);
+                            }
+                            System.out.print("-----------------------------------------------------------------------\n");
+                            //Catch exceptions that can be thrown from the server
+                        } catch (RemoteException e) {
+                            System.out.println("connect lose");
+                            //e.printStackTrace();
+                        } catch (InvalidSessionException e) {
+                            System.out.println("Please login again");
+                            //System.out.println(e.getMessage());
+                        } catch (StatementException e) {
+                            System.out.println(e.getMessage());
+                        }
+                    }
+
                     break;
 
                 default:
@@ -199,13 +370,21 @@ public class ATM {
         operation = args[0];
 
         switch (operation){
+            case "setheartbeat":
+                timeoutPeriod = Long.parseLong(args[1]);
+                break;
             case "exit":
                 return;
             case "login":
-                serverAddress = args[1];
-                serverPort = Integer.parseInt(args[2]);
-                username = args[3];
-                password = args[4];
+                serverAddress1 = args[1];
+                serverPort1 = Integer.parseInt(args[2]);
+                name1 = args[3];
+                serverAddress2 = args[4];
+                serverPort2 = Integer.parseInt(args[5]);
+                name2 = args[6];
+                username = args[7];
+                password = args[8];
+                timeoutPeriod = Long.parseLong(args[9]);
                 break;
             case "withdraw":
             case "deposit":

@@ -10,6 +10,7 @@ import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Scanner;
 
 //Bank Class which implements all the methods defined in the BankInterface
 public class Bank extends UnicastRemoteObject implements BankInterface {
@@ -30,16 +31,44 @@ public class Bank extends UnicastRemoteObject implements BankInterface {
         accounts.add(new Account("user3", "pass3"));
     }
 
+//    public static void main(String args[]) throws Exception {
+//        try {
+//            //Set up securitymanager for server, and specify path to the policy file
+//            System.setSecurityManager(new SecurityManager());
+//            System.out.println("\n--------------------\nSecurity Manager Set");
+//
+//            //Add bank to the RMI registry so it can be located by the client
+//            String name = "Bank";
+//            BankInterface bank = new Bank();
+//            Registry registry = LocateRegistry.getRegistry(args[0], Integer.parseInt(args[1]));
+//            registry.rebind(name, bank);
+//            System.out.println("Bank Server Bound");
+//            System.out.println("Server Stared\n--------------------\n");
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//    }
+
+
     public static void main(String args[]) throws Exception {
         try {
             //Set up securitymanager for server, and specify path to the policy file
             System.setSecurityManager(new SecurityManager());
             System.out.println("\n--------------------\nSecurity Manager Set");
 
-            //Add bank to the RMI registry so it can be located by the client
-            String name = "Bank";
+
             BankInterface bank = new Bank();
             Registry registry = LocateRegistry.getRegistry(args[0], Integer.parseInt(args[1]));
+
+
+            System.out.println("Please input server name");
+            System.out.print(">> ");
+            Scanner sc = new Scanner(System.in);
+            String name = sc.nextLine();
+
+            System.out.println("The server name is" + name);
+
+
             registry.rebind(name, bank);
             System.out.println("Bank Server Bound");
             System.out.println("Server Stared\n--------------------\n");
