@@ -41,12 +41,12 @@ public class ATM {
         public void run() {
             //System.out.println("login again!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
             if (!bank1Alive) {
-                System.out.println("login bank1!!!!!!!!!!!!!");
+                //System.out.println("login bank1!!!!!!!!!!!!!");
                 login1();
             }
 
             if (!bank2Alive) {
-                System.out.println("login bank2!!!!!!!!!!!!!!!!!!!!");
+                //System.out.println("login bank2!!!!!!!!!!!!!!!!!!!!");
                 login2();
             }
         }
@@ -102,7 +102,7 @@ public class ATM {
             //Set up the rmi registry and get the remote bank object from it
             Registry registry = LocateRegistry.getRegistry(serverAddress1, serverPort1);
             bank1 = (BankInterface) registry.lookup(name1);
-            System.out.println("\n----------------\nClient Connected" + "\n----------------\n");
+            System.out.println("\n----------------\nClient Connected bank 1" + "\n----------------\n");
 
             sessionID1 = bank1.login(username, password);
             acc1 = bank1.accountDetails(sessionID1);
@@ -142,7 +142,7 @@ public class ATM {
             //Set up the rmi registry and get the remote bank object from it
             Registry registry = LocateRegistry.getRegistry(serverAddress2, serverPort2);
             bank2 = (BankInterface) registry.lookup(name2);
-            System.out.println("\n----------------\nClient Connected" + "\n----------------\n");
+            System.out.println("\n----------------\nClient Connected bank 2" + "\n----------------\n");
 
             sessionID2 = bank2.login(username, password);
             acc2 = bank2.accountDetails(sessionID2);

@@ -17,7 +17,6 @@ public class Bank extends UnicastRemoteObject implements BankInterface {
 
     private List<Account> accounts; // users accounts
     private List<Session> sessions, deadSessions;
-    private String name;
 
     public Bank() throws RemoteException
     {
@@ -66,26 +65,49 @@ public class Bank extends UnicastRemoteObject implements BankInterface {
             System.out.print(">> ");
             Scanner sc = new Scanner(System.in);
             String name = sc.nextLine();
-
             System.out.println("The server name is" + name);
 
-            bank.setName(name);
             registry.rebind(name, bank);
             System.out.println("Bank Server Bound");
             System.out.println("Server Stared\n--------------------\n");
+
+            System.out.println("Is this the recovered server? Yes/No");
+            System.out.print(">> ");
+            String recovered = sc.nextLine();
+
+            if (recovered.equals("Yes")) {
+                System.out.println("Please input other server's address");
+                System.out.print(">> ");
+                String oldServerAddress  = sc.nextLine();
+
+                System.out.println("Please input other server's port number");
+                System.out.print(">> ");
+                int outServerPort  = Integer.valueOf(sc.nextLine());
+
+                System.out.println("Please input other server's name");
+                System.out.print(">> ");
+                String oldName  = sc.nextLine();
+
+                // Retrive old bank information and set it to the new bank.
+                registry = LocateRegistry.getRegistry(oldServerAddress, outServerPort);
+                BankInterface oldBank = (BankInterface) registry.lookup(oldName);
+                List<Account> oldInfo = oldBank.getBankInfo();
+                bank.setBankInfo(oldInfo);
+            }
+
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
     @Override
-    public void setName(String name) {
-        this.name = name;
+    public List<Account> getBankInfo() {
+        return this.accounts;
     }
 
     @Override
-    public String getName() throws RemoteException {
-        return name;
+    public void setBankInfo(List<Account> accounts) {
+        this.accounts = accounts;
     }
 
     @Override
@@ -210,7 +232,7 @@ public class Bank extends UnicastRemoteObject implements BankInterface {
         //Throw exception if session isn't valid
         throw new InvalidSessionException();
     }
-	
+
 	@Override
 	public boolean heartbeat() throws RemoteException{
 		return true;
