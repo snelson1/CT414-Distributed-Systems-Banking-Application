@@ -30,19 +30,38 @@ public class ATM {
     private static Account acc1, acc2;
     private static Timer heartbeatTimer1;
     private static Timer heartbeatTimer2;
-    public static int hbCount;
+    private static Timer loginTimer;
+    private static int hbCount1;
+    private static boolean bank1Alive;
+    private static boolean bank2Alive;
 
+    private static class LoginTask extends TimerTask {
 
+        @Override
+        public void run() {
+            //System.out.println("login again!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+            if (!bank1Alive) {
+                System.out.println("login bank1!!!!!!!!!!!!!");
+                login1();
+            }
 
+            if (!bank2Alive) {
+                System.out.println("login bank2!!!!!!!!!!!!!!!!!!!!");
+                login2();
+            }
+        }
+    }
 
-    static class HeartbeatTask extends TimerTask {
+    private static class HeartbeatTask extends TimerTask {
         private BankInterface bank;
         private Timer heartbeatTimer;
+        private String name;
 
-        HeartbeatTask(BankInterface bank, Timer heartbeatTimer)
+        HeartbeatTask(BankInterface bank, Timer heartbeatTimer, String name)
         {
             this.bank = bank;
             this.heartbeatTimer = heartbeatTimer;
+            this.name = name;
         }
 
         public void run() {
@@ -51,27 +70,117 @@ public class ATM {
                 //System.out.println("sent heartbeat meesage");
             }
             catch(Exception e){
+
                 System.out.println("Server missing!");
                 this.heartbeatTimer.cancel();
                 this.heartbeatTimer.purge();
-                hbCount++;
+//                hbCount++;
 
                // System.out.println("count is " + hbCount);
 
-                if (hbCount == 2) {
-                    System.exit(0);
+//                if (hbCount == 2) {
+//                    System.exit(0);
+//                }
+                if (name.equals(name1)) {
+                    bank1Alive = false;
+                }
+                if (name.equals(name2)) {
+                    bank2Alive = false;
                 }
 
-
+                if (!bank1Alive && !bank2Alive) {
+                    System.exit(0);
+                }
                 //System.exit(0);
             }
         }
+    }
+
+    private static void login1() {
+        try {
+            //Login with username and password
+            //Set up the rmi registry and get the remote bank object from it
+            Registry registry = LocateRegistry.getRegistry(serverAddress1, serverPort1);
+            bank1 = (BankInterface) registry.lookup(name1);
+            System.out.println("\n----------------\nClient Connected" + "\n----------------\n");
+
+            sessionID1 = bank1.login(username, password);
+            acc1 = bank1.accountDetails(sessionID1);
+            account1 = acc1.getAccountNumber();
+            //Print account details
+            System.out.println("--------------------------\nAccount Details:\n--------------------------\n" +
+                    "Account Number: " + acc1.getAccountNumber() +
+                    "\nSessionID: " + sessionID1 +
+                    "\nUsername: " + acc1.getUserName() +
+                    "\nBalance: " + acc1.getBalance() +
+                    "\n--------------------------\n");
+            System.out.println("Session active for 5 minutes");
+            System.out.println("Use SessionID " + sessionID1 + " for all other operations");
+            // Heartbeat
+            heartbeatTimer1 = new Timer();
+            heartbeatTimer1.scheduleAtFixedRate (new HeartbeatTask(bank1, heartbeatTimer1, name1), 0, timeoutPeriod);
+            bank1Alive = true;
+            //Catch exceptions that can be thrown from the server
+        } catch (RemoteException e) {
+            System.out.println("bank 1 connect lose");
+            //e.printStackTrace();
+        } catch (InvalidLoginException e) {
+            System.out.println("User name or password wrong");
+            //e.printStackTrace();
+        } catch (InvalidSessionException e) {
+            System.out.println("Please login again");
+            //e.printStackTrace();
+        } catch (NotBoundException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    private static void login2() {
+        try {
+            //Login with username and password
+            //Set up the rmi registry and get the remote bank object from it
+            Registry registry = LocateRegistry.getRegistry(serverAddress2, serverPort2);
+            bank2 = (BankInterface) registry.lookup(name2);
+            System.out.println("\n----------------\nClient Connected" + "\n----------------\n");
+
+            sessionID2 = bank2.login(username, password);
+            acc2 = bank2.accountDetails(sessionID2);
+            account2 = acc2.getAccountNumber();
+            //Print account details
+            System.out.println("--------------------------\nAccount Details:\n--------------------------\n" +
+                    "Account Number: " + acc2.getAccountNumber() +
+                    "\nSessionID: " + sessionID2 +
+                    "\nUsername: " + acc2.getUserName() +
+                    "\nBalance: " + acc2.getBalance() +
+                    "\n--------------------------\n");
+            System.out.println("Session active for 5 minutes");
+            System.out.println("Use SessionID " + sessionID2 + " for all other operations");
+            // Heartbeat
+            heartbeatTimer2 = new Timer();
+            heartbeatTimer2.scheduleAtFixedRate (new HeartbeatTask(bank2, heartbeatTimer2, name2), 0, timeoutPeriod);
+            bank2Alive = true;
+            //Catch exceptions that can be thrown from the server
+        } catch (RemoteException e) {
+            System.out.println("bank 2 connect lose");
+            //e.printStackTrace();
+        } catch (InvalidLoginException e) {
+            System.out.println("User name or password wrong");
+            //e.printStackTrace();
+        } catch (InvalidSessionException e) {
+            System.out.println("Please login again");
+            //e.printStackTrace();
+        } catch (NotBoundException e) {
+            e.printStackTrace();
+        }
+
     }
 
     public static void main (String args[]) {
         System.out.println("client start");
         System.out.print(">> ");
         Scanner sc = new Scanner(System.in);
+
         while (sc.hasNextLine()) {
             String line = sc.nextLine().replaceAll("\n", "");
             //System.out.println(line);
@@ -93,78 +202,10 @@ public class ATM {
                     System.exit(0);
 
                 case "login":
-                    try {
-                        //Login with username and password
-                        //Set up the rmi registry and get the remote bank object from it
-                        Registry registry = LocateRegistry.getRegistry(serverAddress1, serverPort1);
-                        bank1 = (BankInterface) registry.lookup(name1);
-                        System.out.println("\n----------------\nClient Connected" + "\n----------------\n");
-
-                        sessionID1 = bank1.login(username, password);
-                        acc1 = bank1.accountDetails(sessionID1);
-                        account1 = acc1.getAccountNumber();
-                        //Print account details
-                        System.out.println("--------------------------\nAccount Details:\n--------------------------\n" +
-                                "Account Number: " + acc1.getAccountNumber() +
-                                "\nSessionID: " + sessionID1 +
-                                "\nUsername: " + acc1.getUserName() +
-                                "\nBalance: " + acc1.getBalance() +
-                                "\n--------------------------\n");
-                        System.out.println("Session active for 5 minutes");
-                        System.out.println("Use SessionID " + sessionID1 + " for all other operations");
-                        // Heartbeat
-                        heartbeatTimer1 = new Timer();
-                        heartbeatTimer1.scheduleAtFixedRate (new HeartbeatTask(bank1, heartbeatTimer1), 0, timeoutPeriod);
-                        //Catch exceptions that can be thrown from the server
-                    } catch (RemoteException e) {
-                        System.out.println("bank 1 connect lose");
-                        //e.printStackTrace();
-                    } catch (InvalidLoginException e) {
-                        System.out.println("User name or password wrong");
-                        //e.printStackTrace();
-                    } catch (InvalidSessionException e) {
-                        System.out.println("Please login again");
-                        //e.printStackTrace();
-                    } catch (NotBoundException e) {
-                        e.printStackTrace();
-                    }
-
-                    try {
-                        //Login with username and password
-                        //Set up the rmi registry and get the remote bank object from it
-                        Registry registry = LocateRegistry.getRegistry(serverAddress2, serverPort2);
-                        bank2 = (BankInterface) registry.lookup(name2);
-                        System.out.println("\n----------------\nClient Connected" + "\n----------------\n");
-
-                        sessionID2 = bank2.login(username, password);
-                        acc2 = bank2.accountDetails(sessionID2);
-                        account2 = acc2.getAccountNumber();
-                        //Print account details
-                        System.out.println("--------------------------\nAccount Details:\n--------------------------\n" +
-                                "Account Number: " + acc2.getAccountNumber() +
-                                "\nSessionID: " + sessionID2 +
-                                "\nUsername: " + acc2.getUserName() +
-                                "\nBalance: " + acc2.getBalance() +
-                                "\n--------------------------\n");
-                        System.out.println("Session active for 5 minutes");
-                        System.out.println("Use SessionID " + sessionID2 + " for all other operations");
-                        // Heartbeat
-                        heartbeatTimer2 = new Timer();
-                        heartbeatTimer2.scheduleAtFixedRate (new HeartbeatTask(bank2, heartbeatTimer2), 0, timeoutPeriod);
-                        //Catch exceptions that can be thrown from the server
-                    } catch (RemoteException e) {
-                        System.out.println("bank 2 connect lose");
-                        //e.printStackTrace();
-                    } catch (InvalidLoginException e) {
-                        System.out.println("User name or password wrong");
-                        //e.printStackTrace();
-                    } catch (InvalidSessionException e) {
-                        System.out.println("Please login again");
-                        //e.printStackTrace();
-                    } catch (NotBoundException e) {
-                        e.printStackTrace();
-                    }
-
+                    login1();
+                    login2();
+                    loginTimer = new Timer();
+                    loginTimer.scheduleAtFixedRate (new LoginTask(), 0, 1000);
                     break;
 
                 case "deposit":

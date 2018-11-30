@@ -15,4 +15,6 @@ public interface BankInterface extends Remote {
     StatementInterface getStatement(int accountnum, Date from, Date to, long sessionID) throws RemoteException, InvalidSessionException, StatementException;
     Account accountDetails(long sessionID) throws RemoteException, InvalidSessionException;
 	boolean heartbeat() throws RemoteException;
+	void setName(String name) throws RemoteException;
+	String getName() throws RemoteException;
 }

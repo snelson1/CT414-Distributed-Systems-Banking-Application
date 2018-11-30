@@ -17,6 +17,7 @@ public class Bank extends UnicastRemoteObject implements BankInterface {
 
     private List<Account> accounts; // users accounts
     private List<Session> sessions, deadSessions;
+    private String name;
 
     public Bank() throws RemoteException
     {
@@ -68,13 +69,23 @@ public class Bank extends UnicastRemoteObject implements BankInterface {
 
             System.out.println("The server name is" + name);
 
-
+            bank.setName(name);
             registry.rebind(name, bank);
             System.out.println("Bank Server Bound");
             System.out.println("Server Stared\n--------------------\n");
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    @Override
+    public String getName() throws RemoteException {
+        return name;
     }
 
     @Override
