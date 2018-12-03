@@ -19,7 +19,7 @@ import java.util.TimerTask;
 public class ATM {
     private static String serverAddress1, serverAddress2;
     private static int serverPort1, serverPort2, account1, account2;
-    private static String name1, name2;
+    private static String name1, name2
     private static String operation, username, password;
     private static long sessionID1 = 0;
     private static long sessionID2 = 0;
@@ -102,20 +102,19 @@ public class ATM {
             //Set up the rmi registry and get the remote bank object from it
             Registry registry = LocateRegistry.getRegistry(serverAddress1, serverPort1);
             bank1 = (BankInterface) registry.lookup(name1);
-            System.out.println("\n----------------\nClient Connected bank 1" + "\n----------------\n");
 
             sessionID1 = bank1.login(username, password);
             acc1 = bank1.accountDetails(sessionID1);
             account1 = acc1.getAccountNumber();
             //Print account details
+            System.out.println("\n----------------\nClient Connected bank 1" + "\n----------------\n");
             System.out.println("--------------------------\nAccount Details:\n--------------------------\n" +
                     "Account Number: " + acc1.getAccountNumber() +
-                    "\nSessionID: " + sessionID1 +
                     "\nUsername: " + acc1.getUserName() +
                     "\nBalance: " + acc1.getBalance() +
                     "\n--------------------------\n");
-            System.out.println("Session active for 5 minutes");
-            System.out.println("Use SessionID " + sessionID1 + " for all other operations");
+            //System.out.println("Session active for 5 minutes");
+            //System.out.println("Use SessionID " + sessionID1 + " for all other operations");
             // Heartbeat
             heartbeatTimer1 = new Timer();
             heartbeatTimer1.scheduleAtFixedRate (new HeartbeatTask(bank1, heartbeatTimer1, name1), 0, timeoutPeriod);
@@ -150,12 +149,11 @@ public class ATM {
             //Print account details
             System.out.println("--------------------------\nAccount Details:\n--------------------------\n" +
                     "Account Number: " + acc2.getAccountNumber() +
-                    "\nSessionID: " + sessionID2 +
                     "\nUsername: " + acc2.getUserName() +
                     "\nBalance: " + acc2.getBalance() +
                     "\n--------------------------\n");
-            System.out.println("Session active for 5 minutes");
-            System.out.println("Use SessionID " + sessionID2 + " for all other operations");
+            //System.out.println("Session active for 5 minutes");
+            //System.out.println("Use SessionID " + sessionID2 + " for all other operations");
             // Heartbeat
             heartbeatTimer2 = new Timer();
             heartbeatTimer2.scheduleAtFixedRate (new HeartbeatTask(bank2, heartbeatTimer2, name2), 0, timeoutPeriod);
