@@ -141,12 +141,12 @@ public class ATM {
             //Set up the rmi registry and get the remote bank object from it
             Registry registry = LocateRegistry.getRegistry(serverAddress2, serverPort2);
             bank2 = (BankInterface) registry.lookup(name2);
-            System.out.println("\n----------------\nClient Connected bank 2" + "\n----------------\n");
 
             sessionID2 = bank2.login(username, password);
             acc2 = bank2.accountDetails(sessionID2);
             account2 = acc2.getAccountNumber();
             //Print account details
+            System.out.println("\n----------------\nClient Connected bank 2" + "\n----------------\n");
             System.out.println("--------------------------\nAccount Details:\n--------------------------\n" +
                     "Account Number: " + acc2.getAccountNumber() +
                     "\nUsername: " + acc2.getUserName() +
