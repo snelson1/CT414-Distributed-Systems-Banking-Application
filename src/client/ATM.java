@@ -19,7 +19,7 @@ import java.util.TimerTask;
 public class ATM {
     private static String serverAddress1, serverAddress2;
     private static int serverPort1, serverPort2, account1, account2;
-    private static String name1, name2
+    private static String name1, name2;
     private static String operation, username, password;
     private static long sessionID1 = 0;
     private static long sessionID2 = 0;
@@ -27,6 +27,7 @@ public class ATM {
     private static BankInterface bank1, bank2;
     private static Date startDate, endDate;
     private volatile static long timeoutPeriod;
+    private volatile static int leaseTime;
     private static Account acc1, acc2;
     private static Timer heartbeatTimer1;
     private static Timer heartbeatTimer2;
@@ -56,6 +57,7 @@ public class ATM {
         private BankInterface bank;
         private Timer heartbeatTimer;
         private String name;
+        private int count = 0;
 
         HeartbeatTask(BankInterface bank, Timer heartbeatTimer, String name)
         {
@@ -70,28 +72,32 @@ public class ATM {
                 //System.out.println("sent heartbeat meesage");
             }
             catch(Exception e){
-
-                System.out.println("Server missing!");
-                this.heartbeatTimer.cancel();
-                this.heartbeatTimer.purge();
+                count += 1;
+                System.out.println("count + 1");
+                if (count >= leaseTime) {
+                    System.out.println("Server missing! This is a test, may print a lot of time.");
+                    this.heartbeatTimer.cancel();
+                    this.heartbeatTimer.purge();
 //                hbCount++;
 
-               // System.out.println("count is " + hbCount);
+                    // System.out.println("count is " + hbCount);
 
 //                if (hbCount == 2) {
 //                    System.exit(0);
 //                }
-                if (name.equals(name1)) {
-                    bank1Alive = false;
-                }
-                if (name.equals(name2)) {
-                    bank2Alive = false;
-                }
+                    if (name.equals(name1)) {
+                        bank1Alive = false;
+                    }
+                    if (name.equals(name2)) {
+                        bank2Alive = false;
+                    }
 
-                if (!bank1Alive && !bank2Alive) {
-                    System.exit(0);
+                    if (!bank1Alive && !bank2Alive) {
+                        System.exit(0);
+                    }
+
+                    //System.exit(0);
                 }
-                //System.exit(0);
             }
         }
     }
@@ -117,11 +123,12 @@ public class ATM {
             //System.out.println("Use SessionID " + sessionID1 + " for all other operations");
             // Heartbeat
             heartbeatTimer1 = new Timer();
+            long freq = timeoutPeriod / leaseTime;
             heartbeatTimer1.scheduleAtFixedRate (new HeartbeatTask(bank1, heartbeatTimer1, name1), 0, timeoutPeriod);
             bank1Alive = true;
             //Catch exceptions that can be thrown from the server
         } catch (RemoteException e) {
-            System.out.println("bank 1 connect lose");
+            //System.out.println("bank 1 connect lose");
             //e.printStackTrace();
         } catch (InvalidLoginException e) {
             System.out.println("User name or password wrong");
@@ -156,11 +163,12 @@ public class ATM {
             //System.out.println("Use SessionID " + sessionID2 + " for all other operations");
             // Heartbeat
             heartbeatTimer2 = new Timer();
-            heartbeatTimer2.scheduleAtFixedRate (new HeartbeatTask(bank2, heartbeatTimer2, name2), 0, timeoutPeriod);
+            long freq = timeoutPeriod / leaseTime;
+            heartbeatTimer2.scheduleAtFixedRate (new HeartbeatTask(bank2, heartbeatTimer2, name2), 0, freq);
             bank2Alive = true;
             //Catch exceptions that can be thrown from the server
         } catch (RemoteException e) {
-            System.out.println("bank 2 connect lose");
+            //System.out.println("bank 2 connect lose");
             //e.printStackTrace();
         } catch (InvalidLoginException e) {
             System.out.println("User name or password wrong");
@@ -411,6 +419,7 @@ public class ATM {
         switch (operation){
             case "setheartbeat":
                 timeoutPeriod = Long.parseLong(args[1]);
+                leaseTime = Integer.parseInt(args[2]);
                 break;
             case "exit":
                 return;
@@ -424,6 +433,7 @@ public class ATM {
                 username = args[7];
                 password = args[8];
                 timeoutPeriod = Long.parseLong(args[9]);
+                leaseTime = Integer.parseInt(args[10]);
                 break;
             case "withdraw":
             case "deposit":

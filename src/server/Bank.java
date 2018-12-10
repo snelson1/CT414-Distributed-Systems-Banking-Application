@@ -256,8 +256,8 @@ public class Bank extends UnicastRemoteObject implements BankInterface {
             //Checks if the sessionID passed from client is in the sessions list and active
             if(s.getClientId() == sessID && s.isAlive()) {
                 //Prints session details and returns true if session is alive
-                System.out.println(">> Session " + s.getClientId() + " running for " + s.getTimeAlive() + "s");
-                System.out.println(">> Time Remaining: " + (s.getMaxSessionLength() - s.getTimeAlive()) + "s");
+                //System.out.println(">> Session " + s.getClientId() + " running for " + s.getTimeAlive() + "s");
+                //System.out.println(">> Time Remaining: " + (s.getMaxSessionLength() - s.getTimeAlive()) + "s");
                 return true;
             }
             //If session is in list, but timed out, add it to deadSessions list
