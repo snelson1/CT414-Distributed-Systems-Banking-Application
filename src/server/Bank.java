@@ -73,27 +73,35 @@ public class Bank extends UnicastRemoteObject implements BankInterface {
 
             System.out.println("Is this the recovered server? Yes/No");
             System.out.print(">> ");
-            String recovered = sc.nextLine();
+            while (true) {
+                String recovered = sc.nextLine();
 
-            if (recovered.equals("Yes")) {
-                System.out.println("Please input other server's address");
-                System.out.print(">> ");
-                String oldServerAddress  = sc.nextLine();
+                if (recovered.equals("Yes")) {
+                    System.out.println("Please input other server's address");
+                    System.out.print(">> ");
+                    String oldServerAddress  = sc.nextLine();
 
-                System.out.println("Please input other server's port number");
-                System.out.print(">> ");
-                int outServerPort  = Integer.valueOf(sc.nextLine());
+                    System.out.println("Please input other server's port number");
+                    System.out.print(">> ");
+                    int outServerPort  = Integer.valueOf(sc.nextLine());
 
-                System.out.println("Please input other server's name");
-                System.out.print(">> ");
-                String oldName  = sc.nextLine();
+                    System.out.println("Please input other server's name");
+                    System.out.print(">> ");
+                    String oldName  = sc.nextLine();
 
-                // Retrive old bank information and set it to the new bank.
-                registry = LocateRegistry.getRegistry(oldServerAddress, outServerPort);
-                BankInterface oldBank = (BankInterface) registry.lookup(oldName);
-                List<Account> oldInfo = oldBank.getBankInfo();
-                bank.setBankInfo(oldInfo);
+                    // Retrive old bank information and set it to the new bank.
+                    registry = LocateRegistry.getRegistry(oldServerAddress, outServerPort);
+                    BankInterface oldBank = (BankInterface) registry.lookup(oldName);
+                    List<Account> oldInfo = oldBank.getBankInfo();
+                    bank.setBankInfo(oldInfo);
+                    break;
+                } else if (recovered.equals("No")) {
+                    break;
+                } else {
+                    System.out.println("Please input 'Yes' or 'No'.");
+                }
             }
+
 
         } catch (Exception e) {
             e.printStackTrace();

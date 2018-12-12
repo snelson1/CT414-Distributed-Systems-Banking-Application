@@ -27,7 +27,7 @@ public class ATM {
     private static BankInterface bank1, bank2;
     private static Date startDate, endDate;
     private volatile static long timeoutPeriod;
-    private volatile static int leaseTime;
+    //private volatile static int leaseTime;
     private static Account acc1, acc2;
     private static Timer heartbeatTimer1;
     private static Timer heartbeatTimer2;
@@ -57,13 +57,14 @@ public class ATM {
         private BankInterface bank;
         private Timer heartbeatTimer;
         private String name;
-        private int count = 0;
+        private int count;
 
         HeartbeatTask(BankInterface bank, Timer heartbeatTimer, String name)
         {
             this.bank = bank;
             this.heartbeatTimer = heartbeatTimer;
             this.name = name;
+            count = 0;
         }
 
         public void run() {
@@ -73,9 +74,9 @@ public class ATM {
             }
             catch(Exception e){
                 count += 1;
-                System.out.println("count + 1");
-                if (count >= leaseTime) {
-                    System.out.println("Server missing! This is a test, may print a lot of time.");
+                //System.out.println("count + 1");
+                if (count >= timeoutPeriod) {
+                    System.out.println("Server missing!");
                     this.heartbeatTimer.cancel();
                     this.heartbeatTimer.purge();
 //                hbCount++;
@@ -123,8 +124,7 @@ public class ATM {
             //System.out.println("Use SessionID " + sessionID1 + " for all other operations");
             // Heartbeat
             heartbeatTimer1 = new Timer();
-            long freq = timeoutPeriod / leaseTime;
-            heartbeatTimer1.scheduleAtFixedRate (new HeartbeatTask(bank1, heartbeatTimer1, name1), 0, timeoutPeriod);
+            heartbeatTimer1.scheduleAtFixedRate (new HeartbeatTask(bank1, heartbeatTimer1, name1), 0, 1000);
             bank1Alive = true;
             //Catch exceptions that can be thrown from the server
         } catch (RemoteException e) {
@@ -163,8 +163,7 @@ public class ATM {
             //System.out.println("Use SessionID " + sessionID2 + " for all other operations");
             // Heartbeat
             heartbeatTimer2 = new Timer();
-            long freq = timeoutPeriod / leaseTime;
-            heartbeatTimer2.scheduleAtFixedRate (new HeartbeatTask(bank2, heartbeatTimer2, name2), 0, freq);
+            heartbeatTimer2.scheduleAtFixedRate (new HeartbeatTask(bank2, heartbeatTimer2, name2), 0, 1000);
             bank2Alive = true;
             //Catch exceptions that can be thrown from the server
         } catch (RemoteException e) {
@@ -199,7 +198,7 @@ public class ATM {
             getCommandLineArguments(commands);
             //double balance;
 
-            System.out.println("login method finish");
+            //System.out.println("login method finish");
 
             //Switch based on the operation
             switch (operation){
@@ -304,15 +303,17 @@ public class ATM {
                         inquirySuccess1 = true;
                         //Catch exceptions that can be thrown from the server
                     } catch (RemoteException e) {
-                        System.out.println("bank 1 connect lose");
+                        System.out.println("bank 1 connect lose inquiry");
+
                         //e.printStackTrace();
                     } catch (InvalidSessionException e) {
                         System.out.println("Please login again");
                         //System.out.println(e.getMessage());
                     }
-
+                    //System.out.println("stuck somewhere?");
                     try {
                         //Get account details from bank
+                        //System.out.println("inquiry another server");
                         Account acc2 = bank2.inquiry(account2,sessionID2);
                         if (!inquirySuccess1) {
                             System.out.println("--------------------------\nAccount Details:\n--------------------------\n" +
@@ -419,7 +420,6 @@ public class ATM {
         switch (operation){
             case "setheartbeat":
                 timeoutPeriod = Long.parseLong(args[1]);
-                leaseTime = Integer.parseInt(args[2]);
                 break;
             case "exit":
                 return;
@@ -433,7 +433,6 @@ public class ATM {
                 username = args[7];
                 password = args[8];
                 timeoutPeriod = Long.parseLong(args[9]);
-                leaseTime = Integer.parseInt(args[10]);
                 break;
             case "withdraw":
             case "deposit":
