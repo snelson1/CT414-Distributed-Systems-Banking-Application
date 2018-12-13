@@ -107,9 +107,11 @@ public class ATM {
         try {
             //Login with username and password
             //Set up the rmi registry and get the remote bank object from it
+            //System.out.println("start login 1");
             Registry registry = LocateRegistry.getRegistry(serverAddress1, serverPort1);
+            //System.out.println("finish registry.");
             bank1 = (BankInterface) registry.lookup(name1);
-
+            //System.out.println("create bank1");
             sessionID1 = bank1.login(username, password);
             acc1 = bank1.accountDetails(sessionID1);
             account1 = acc1.getAccountNumber();
@@ -208,7 +210,9 @@ public class ATM {
 
                 case "login":
                     login1();
+                   // System.out.println("Server1 connected .");
                     login2();
+                   // System.out.println("Server2 connected .");
                     loginTimer = new Timer();
                     loginTimer.scheduleAtFixedRate (new LoginTask(), 0, 1000);
                     break;
