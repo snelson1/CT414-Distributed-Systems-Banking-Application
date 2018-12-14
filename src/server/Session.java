@@ -29,7 +29,7 @@ public class Session extends TimerTask implements Serializable{
         //create timer object to allow the task to be scheduled to run every second
         this.timer = new Timer();
         this.startTimer();
-        System.out.println(">> Session " + sessionId + " created\n");
+        //System.out.println(">> Session " + sessionId + " created\n");
     }
 
     private void startTimer() {
@@ -47,9 +47,9 @@ public class Session extends TimerTask implements Serializable{
             //set alive to false and cancel the timer
             this.alive = false;
             this.timer.cancel();
-            System.out.println("\n---------------------------\nSession " + this.sessionId + " terminated \n---------------------------");
-            System.out.println(this);
-            System.out.println("---------------------------");
+            // System.out.println("\n---------------------------\nSession " + this.sessionId + " terminated \n---------------------------");
+            // System.out.println(this);
+            // System.out.println("---------------------------");
         }
     }
 
