@@ -202,6 +202,10 @@ public class ATM {
 
             //Switch based on the operation
             switch (operation){
+                case "continue":
+                    continue;
+                case "setheartbeat":
+                    continue;
                 case "exit":
                     System.out.println("User exit ATM terminal.");
                     System.exit(0);
@@ -415,32 +419,56 @@ public class ATM {
         //Parses arguments from command line
         //arguments are in different places based on operation, so switch needed here
 
-        operation = args[0];
+        operation = args[0].trim();
 
         switch (operation){
             case "setheartbeat":
+                if (args.length != 2) {
+                    System.out.println("command fault");
+                    operation = "continue";
+                }
                 timeoutPeriod = Long.parseLong(args[1]);
                 break;
             case "exit":
+                if (args.length != 1) {
+                    System.out.println("command fault");
+                    operation = "continue";
+                }
                 return;
             case "login":
-                serverAddress1 = args[1];
+                if (args.length != 10) {
+                    System.out.println("command fault");
+                    operation = "continue";
+                }
+                serverAddress1 = args[1].trim();
                 serverPort1 = Integer.parseInt(args[2]);
-                name1 = args[3];
-                serverAddress2 = args[4];
+                name1 = args[3].trim();
+                serverAddress2 = args[4].trim();
                 serverPort2 = Integer.parseInt(args[5]);
-                name2 = args[6];
-                username = args[7];
-                password = args[8];
+                name2 = args[6].trim();
+                username = args[7].trim();
+                password = args[8].trim();
                 timeoutPeriod = Long.parseLong(args[9]);
                 break;
             case "withdraw":
             case "deposit":
+                if (args.length != 2) {
+                    System.out.println("command fault");
+                    operation = "continue";
+                }
                 amount = Double.parseDouble(args[1]);
                 break;
             case "inquiry":
+                if (args.length != 1) {
+                    System.out.println("command fault");
+                    operation = "continue";
+                }
                 break;
             case "statement":
+                if (args.length != 3) {
+                    System.out.println("command fault");
+                    operation = "continue";
+                }
                 startDate = new Date(args[1]);
                 endDate = new Date(args[2]);
                 break;

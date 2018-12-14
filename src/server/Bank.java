@@ -64,7 +64,7 @@ public class Bank extends UnicastRemoteObject implements BankInterface {
             System.out.println("Please input server name");
             System.out.print(">> ");
             Scanner sc = new Scanner(System.in);
-            String name = sc.nextLine();
+            String name = sc.nextLine().trim();
             System.out.println("The server name is" + name);
 
             registry.rebind(name, bank);
@@ -74,12 +74,12 @@ public class Bank extends UnicastRemoteObject implements BankInterface {
             System.out.println("Is this the recovered server? Yes/No");
             System.out.print(">> ");
             while (true) {
-                String recovered = sc.nextLine();
+                String recovered = sc.nextLine().trim().toLowerCase();
 
-                if (recovered.equals("Yes")) {
+                if (recovered.equals("yes")) {
                     System.out.println("Please input other server's address");
                     System.out.print(">> ");
-                    String oldServerAddress  = sc.nextLine();
+                    String oldServerAddress  = sc.nextLine().trim();
 
                     System.out.println("Please input other server's port number");
                     System.out.print(">> ");
@@ -87,7 +87,7 @@ public class Bank extends UnicastRemoteObject implements BankInterface {
 
                     System.out.println("Please input other server's name");
                     System.out.print(">> ");
-                    String oldName  = sc.nextLine();
+                    String oldName  = sc.nextLine().trim();
 
                     // Retrive old bank information and set it to the new bank.
                     registry = LocateRegistry.getRegistry(oldServerAddress, outServerPort);
@@ -95,7 +95,7 @@ public class Bank extends UnicastRemoteObject implements BankInterface {
                     List<Account> oldInfo = oldBank.getBankInfo();
                     bank.setBankInfo(oldInfo);
                     break;
-                } else if (recovered.equals("No")) {
+                } else if (recovered.equals("no")) {
                     break;
                 } else {
                     System.out.println("Please input 'Yes' or 'No'.");
