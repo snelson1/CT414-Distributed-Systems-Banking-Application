@@ -1,15 +1,15 @@
 package client;
 
-import exceptions.*;
+import exceptions.InsufficientFundsException;
+import exceptions.InvalidLoginException;
+import exceptions.InvalidSessionException;
 import interfaces.BankInterface;
 import server.Account;
-import server.Statement;
 
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Scanner;
 import java.util.Timer;
@@ -44,12 +44,22 @@ public class ATM {
             //System.out.println("login again!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
             if (!bank1Alive) {
                 //System.out.println("login bank1!!!!!!!!!!!!!");
-                login1();
+                try {
+                    login1();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                    System.out.println("InterruptedException in login1 happened");
+                }
             }
 
             if (!bank2Alive) {
                 //System.out.println("login bank2!!!!!!!!!!!!!!!!!!!!");
-                login2();
+                try {
+                    login2();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                    System.out.println("InterruptedException in login2 happened");
+                }
             }
         }
     }
@@ -104,7 +114,7 @@ public class ATM {
         }
     }
 
-    private static void login1() {
+    private static void login1() throws InterruptedException {
         try {
             //Login with username and password
             //Set up the rmi registry and get the remote bank object from it
@@ -149,7 +159,7 @@ public class ATM {
 
     }
 
-    private static void login2() {
+    private static void login2() throws InterruptedException {
         try {
             //Login with username and password
             //Set up the rmi registry and get the remote bank object from it
@@ -192,7 +202,7 @@ public class ATM {
 
     }
 
-    public static void main (String args[]) {
+    public static void main (String args[]) throws InterruptedException {
         System.out.println("client start");
         System.out.print(">> ");
         Scanner sc = new Scanner(System.in);

@@ -17,7 +17,7 @@ public class Bank extends UnicastRemoteObject implements BankInterface {
 
     private List<Account> accounts; // users accounts
     private List<Session> sessions, deadSessions;
-    private boolean recovery;
+    private static boolean recovery;
 
     public Bank() throws RemoteException
     {
@@ -112,7 +112,7 @@ public class Bank extends UnicastRemoteObject implements BankInterface {
     }
 
     @Override
-    public setRecovery() {
+    public void setRecovery() {
         recovery = true;
     }
 
