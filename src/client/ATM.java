@@ -14,6 +14,7 @@ import java.util.Date;
 import java.util.Scanner;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.TimeUnit;
 
 //Client program, which connects to the bank using RMI and class methods of the remote bank object
 public class ATM {
@@ -33,8 +34,8 @@ public class ATM {
     private static Timer heartbeatTimer2;
     private static Timer loginTimer;
     private static int hbCount1;
-    private static boolean bank1Alive;
-    private static boolean bank2Alive;
+    private static boolean bank1Alive = false;
+    private static boolean bank2Alive = false;
 
     private static class LoginTask extends TimerTask {
 
@@ -113,6 +114,10 @@ public class ATM {
             bank1 = (BankInterface) registry.lookup(name1);
             //System.out.println("create bank1");
             sessionID1 = bank1.login(username, password);
+            while (sessionID1 == -1) {
+                TimeUnit.SECONDS.sleep(1)
+                sessionID1 = bank1.login(username, password);
+            }
             acc1 = bank1.accountDetails(sessionID1);
             account1 = acc1.getAccountNumber();
             //Print account details
@@ -154,6 +159,10 @@ public class ATM {
             sessionID2 = bank2.login(username, password);
             acc2 = bank2.accountDetails(sessionID2);
             account2 = acc2.getAccountNumber();
+            while (sessionID2 == -1) {
+                TimeUnit.SECONDS.sleep(1)
+                sessionID2 = bank2.login(username, password);
+            }
             //Print account details
             System.out.println("\n----------------\nClient Connected bank 2" + "\n----------------\n");
             System.out.println("--------------------------\nAccount Details:\n--------------------------\n" +
@@ -227,6 +236,10 @@ public class ATM {
                     try {
                         //Make bank deposit and get updated balance
                         double balance = bank1.deposit(account1, amount, sessionID1);
+                        while (balance == -1) {
+                            TimeUnit.SECONDS.sleep(1)
+                            balance = bank1.deposit(account1, amount, sessionID1);
+                        }
                         System.out.println("Successfully deposited E" + amount + " into account " + account1);
                         System.out.println("New balance: E" + balance);
                         depositSuccess1 = true;
@@ -242,6 +255,10 @@ public class ATM {
                     try {
                         //Make bank deposit and get updated balance
                         double balance = bank2.deposit(account2, amount, sessionID2);
+                        while (balance == -1) {
+                            TimeUnit.SECONDS.sleep(1)
+                            balance = bank2.deposit(account2, amount, sessionID1);
+                        }
                         if (!depositSuccess1) {
                             System.out.println("Successfully deposited E" + amount + " into account " + account2);
                             System.out.println("New balance: E" + balance);
@@ -262,6 +279,10 @@ public class ATM {
                     try {
                         //Make bank withdrawal and get updated balance
                         double balance = bank1.withdraw(account1, amount, sessionID1);
+                        while (balance == -1) {
+                            TimeUnit.SECONDS.sleep(1)
+                            balance = bank1.withdraw(account1, amount, sessionID1);
+                        }
                         System.out.println("Successfully withdrew E" + amount + " from account " + account1 +
                                 "\nRemaining Balance: E" + balance);
                         withdrawSuccess1 = true;
@@ -280,6 +301,10 @@ public class ATM {
                     try {
                         //Make bank withdrawal and get updated balance
                         double balance = bank2.withdraw(account2, amount, sessionID2);
+                        while (balance == -1) {
+                            TimeUnit.SECONDS.sleep(1)
+                            balance = bank2.withdraw(account2, amount, sessionID1);
+                        }
                         if (!withdrawSuccess1) {
                             System.out.println("Successfully withdrew E" + amount + " from account " + account2 +
                                     "\nRemaining Balance: E" + balance);
@@ -303,6 +328,10 @@ public class ATM {
                     try {
                         //Get account details from bank
                         Account acc1 = bank1.inquiry(account1,sessionID1);
+                        while (acc1 == null) {
+                            TimeUnit.SECONDS.sleep(1)
+                            acc1 = bank1.inquiry(account1,sessionID1);
+                        }
                         System.out.println("--------------------------\nAccount Details:\n--------------------------\n" +
                                 "Account Number: " + acc1.getAccountNumber() +
                                 "\nUsername: " + acc1.getUserName() +
@@ -323,6 +352,10 @@ public class ATM {
                         //Get account details from bank
                         //System.out.println("inquiry another server");
                         Account acc2 = bank2.inquiry(account2,sessionID2);
+                        while (acc2 == null) {
+                            TimeUnit.SECONDS.sleep(1)
+                            acc2 = bank2.inquiry(account2,sessionID1);
+                        }
                         if (!inquirySuccess1) {
                             System.out.println("--------------------------\nAccount Details:\n--------------------------\n" +
                                     "Account Number: " + acc2.getAccountNumber() +
@@ -340,67 +373,70 @@ public class ATM {
                     }
                     break;
 
-                case "statement":
-                    Statement s = null;
-                    try {
-                        //Get statement for required dates
-                        s = (Statement) bank1.getStatement(account1, startDate, endDate, sessionID1);
-
-                        //format statement for printing to the window
-                        SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
-                        System.out.print("-----------------------------------------------------------------------\n");
-                        System.out.println("Statement for Account " + account1 + " between " +
-                                dateFormat.format(startDate) + " and " + dateFormat.format(endDate));
-                        System.out.print("-----------------------------------------------------------------------\n");
-                        System.out.println("Date\t\t\tTransaction Type\tAmount\t\tBalance");
-                        System.out.print("-----------------------------------------------------------------------\n");
-
-                        for(Object t : s.getTransations()) {
-                            System.out.println(t);
-                        }
-                        System.out.print("-----------------------------------------------------------------------\n");
-                        //Catch exceptions that can be thrown from the server
-                    } catch (RemoteException e) {
-                        System.out.println("bank 1 connect lose");
-                        //e.printStackTrace();
-                    } catch (InvalidSessionException e) {
-                        System.out.println("Please login again");
-                        //System.out.println(e.getMessage());
-                    } catch (StatementException e) {
-                        System.out.println(e.getMessage());
-                    }
-
-                    if (s == null) {
-                        try {
-                            //Get statement for required dates
-                            s = (Statement) bank2.getStatement(account2, startDate, endDate, sessionID2);
-
-                            //format statement for printing to the window
-                            SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
-                            System.out.print("-----------------------------------------------------------------------\n");
-                            System.out.println("Statement for Account " + account2 + " between " +
-                                    dateFormat.format(startDate) + " and " + dateFormat.format(endDate));
-                            System.out.print("-----------------------------------------------------------------------\n");
-                            System.out.println("Date\t\t\tTransaction Type\tAmount\t\tBalance");
-                            System.out.print("-----------------------------------------------------------------------\n");
-
-                            for(Object t : s.getTransations()) {
-                                System.out.println(t);
-                            }
-                            System.out.print("-----------------------------------------------------------------------\n");
-                            //Catch exceptions that can be thrown from the server
-                        } catch (RemoteException e) {
-                            System.out.println("connect lose");
-                            //e.printStackTrace();
-                        } catch (InvalidSessionException e) {
-                            System.out.println("Please login again");
-                            //System.out.println(e.getMessage());
-                        } catch (StatementException e) {
-                            System.out.println(e.getMessage());
-                        }
-                    }
-
-                    break;
+//                case "statement":
+//                    Statement s = null;
+//                    try {
+//                        //Get statement for required dates
+//                        s = (Statement) bank1.getStatement(account1, startDate, endDate, sessionID1);
+//                        while (s == null) {
+//                            TimeUnit.SECONDS.sleep(1)
+//                            s = (Statement) bank1.getStatement(account1, startDate, endDate, sessionID1);
+//                        }
+//                        //format statement for printing to the window
+//                        SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+//                        System.out.print("-----------------------------------------------------------------------\n");
+//                        System.out.println("Statement for Account " + account1 + " between " +
+//                                dateFormat.format(startDate) + " and " + dateFormat.format(endDate));
+//                        System.out.print("-----------------------------------------------------------------------\n");
+//                        System.out.println("Date\t\t\tTransaction Type\tAmount\t\tBalance");
+//                        System.out.print("-----------------------------------------------------------------------\n");
+//
+//                        for(Object t : s.getTransations()) {
+//                            System.out.println(t);
+//                        }
+//                        System.out.print("-----------------------------------------------------------------------\n");
+//                        //Catch exceptions that can be thrown from the server
+//                    } catch (RemoteException e) {
+//                        System.out.println("bank 1 connect lose");
+//                        //e.printStackTrace();
+//                    } catch (InvalidSessionException e) {
+//                        System.out.println("Please login again");
+//                        //System.out.println(e.getMessage());
+//                    } catch (StatementException e) {
+//                        System.out.println(e.getMessage());
+//                    }
+//
+//                    if (s == null) {
+//                        try {
+//                            //Get statement for required dates
+//                            s = (Statement) bank2.getStatement(account2, startDate, endDate, sessionID2);
+//
+//                            //format statement for printing to the window
+//                            SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+//                            System.out.print("-----------------------------------------------------------------------\n");
+//                            System.out.println("Statement for Account " + account2 + " between " +
+//                                    dateFormat.format(startDate) + " and " + dateFormat.format(endDate));
+//                            System.out.print("-----------------------------------------------------------------------\n");
+//                            System.out.println("Date\t\t\tTransaction Type\tAmount\t\tBalance");
+//                            System.out.print("-----------------------------------------------------------------------\n");
+//
+//                            for(Object t : s.getTransations()) {
+//                                System.out.println(t);
+//                            }
+//                            System.out.print("-----------------------------------------------------------------------\n");
+//                            //Catch exceptions that can be thrown from the server
+//                        } catch (RemoteException e) {
+//                            System.out.println("connect lose");
+//                            //e.printStackTrace();
+//                        } catch (InvalidSessionException e) {
+//                            System.out.println("Please login again");
+//                            //System.out.println(e.getMessage());
+//                        } catch (StatementException e) {
+//                            System.out.println(e.getMessage());
+//                        }
+//                    }
+//
+//                    break;
 
                 default:
                     //Catch all case for operation that isn't one of the above
@@ -468,14 +504,14 @@ public class ATM {
                     operation = "continue";
                 }
                 break;
-            case "statement":
-                if (args.length != 3) {
-                    System.out.println("command fault");
-                    operation = "continue";
-                }
-                startDate = new Date(args[1]);
-                endDate = new Date(args[2]);
-                break;
+//            case "statement":
+//                if (args.length != 3) {
+//                    System.out.println("command fault");
+//                    operation = "continue";
+//                }
+//                startDate = new Date(args[1]);
+//                endDate = new Date(args[2]);
+//                break;
         }
     }
 }

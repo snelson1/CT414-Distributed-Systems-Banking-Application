@@ -18,4 +18,6 @@ public interface BankInterface extends Remote {
 	boolean heartbeat() throws RemoteException;
     List<Account> getBankInfo() throws RemoteException;
     void setBankInfo(List<Account> accounts) throws RemoteException;
+    void setRecovery() throws RemoteException;
+    void finishRecovery() throws RemoteException;
 }

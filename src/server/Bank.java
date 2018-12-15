@@ -17,11 +17,13 @@ public class Bank extends UnicastRemoteObject implements BankInterface {
 
     private List<Account> accounts; // users accounts
     private List<Session> sessions, deadSessions;
+    private boolean recovery;
 
     public Bank() throws RemoteException
     {
         super();
         //set up ArrayLists and create test accounts
+        recovery = true;
         accounts = new ArrayList<>();
         sessions = new ArrayList<>();
         deadSessions = new ArrayList<>();
@@ -56,10 +58,8 @@ public class Bank extends UnicastRemoteObject implements BankInterface {
             System.setSecurityManager(new SecurityManager());
             System.out.println("\n--------------------\nSecurity Manager Set");
 
-
             BankInterface bank = new Bank();
             Registry registry = LocateRegistry.getRegistry(args[0], Integer.parseInt(args[1]));
-
 
             System.out.println("Please input server name");
             System.out.print(">> ");
@@ -70,9 +70,9 @@ public class Bank extends UnicastRemoteObject implements BankInterface {
             registry.rebind(name, bank);
             System.out.println("Bank Server Bound");
             System.out.println("Server Stared\n--------------------\n");
-
             System.out.println("Is this the recovered server? Yes/No");
             System.out.print(">> ");
+
             while (true) {
                 String recovered = sc.nextLine().trim().toLowerCase();
 
@@ -92,8 +92,11 @@ public class Bank extends UnicastRemoteObject implements BankInterface {
                     // Retrive old bank information and set it to the new bank.
                     registry = LocateRegistry.getRegistry(oldServerAddress, outServerPort);
                     BankInterface oldBank = (BankInterface) registry.lookup(oldName);
+                    oldBank.setRecovery();
                     List<Account> oldInfo = oldBank.getBankInfo();
                     bank.setBankInfo(oldInfo);
+                    oldBank.finishRecovery();
+                    recovery = false;
                     break;
                 } else if (recovered.equals("no")) {
                     break;
@@ -101,11 +104,21 @@ public class Bank extends UnicastRemoteObject implements BankInterface {
                     System.out.println("Please input 'Yes' or 'No'.");
                 }
             }
-
+            recovery = false;
 
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public setRecovery() {
+        recovery = true;
+    }
+
+    @Override()
+    public void finishRecovery() {
+        recovery = false;
     }
 
     @Override
@@ -120,6 +133,9 @@ public class Bank extends UnicastRemoteObject implements BankInterface {
 
     @Override
     public long login(String username, String password) throws RemoteException, InvalidLoginException {
+        if (recovery) {
+            return -1;
+        }
         //Loop through the accounts to find the correct one for given username and password
         for(Account acc : accounts) {
             if(username.equals(acc.getUserName()) && password.equals(acc.getPassword())){
@@ -136,6 +152,9 @@ public class Bank extends UnicastRemoteObject implements BankInterface {
 
     @Override
     public double deposit(int accountnum, double amount, long sessionID) throws RemoteException, InvalidSessionException {
+        if (recovery) {
+            return -1;
+        }
         //Check if user session is active, based on sessionID passed by client
         if(checkSessionActive(sessionID)) {
             Account account;
@@ -162,6 +181,9 @@ public class Bank extends UnicastRemoteObject implements BankInterface {
     @Override
     public double withdraw(int accountnum, double amount, long sessionID) throws RemoteException,
             InsufficientFundsException, InvalidSessionException {
+        if (recovery) {
+            return -1;
+        }
         //Check if user session is active, based on sessionID passed by client
         if(checkSessionActive(sessionID)) {
             try {
@@ -191,6 +213,9 @@ public class Bank extends UnicastRemoteObject implements BankInterface {
 
     @Override
     public Account inquiry(int accountnum, long sessionID) throws RemoteException, InvalidSessionException {
+        if (recovery) {
+            return null;
+        }
         //Check if session is active based on sessionID that is passed in
         if(checkSessionActive(sessionID)) {
             try {
@@ -208,6 +233,9 @@ public class Bank extends UnicastRemoteObject implements BankInterface {
     @Override
     public Statement getStatement(int accountnum, Date from, Date to, long sessionID) throws RemoteException,
            InvalidSessionException, StatementException {
+        if (recovery) {
+            return null;
+        }
         //Check if the session is active based on sessionID from client
         if(checkSessionActive(sessionID)) {
             try {
@@ -229,6 +257,9 @@ public class Bank extends UnicastRemoteObject implements BankInterface {
 
     @Override
     public Account accountDetails(long sessionID) throws InvalidSessionException {
+        if (recovery) {
+            return null;
+        }
         //Get account details based on the session ID
         //Each session has an associated account, so the accounts can be retrieved based on a session
         //Used on the client for looking up accounts
