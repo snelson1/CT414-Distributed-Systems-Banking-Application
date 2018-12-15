@@ -115,7 +115,7 @@ public class ATM {
             //System.out.println("create bank1");
             sessionID1 = bank1.login(username, password);
             while (sessionID1 == -1) {
-                TimeUnit.SECONDS.sleep(1)
+                TimeUnit.SECONDS.sleep(1);
                 sessionID1 = bank1.login(username, password);
             }
             acc1 = bank1.accountDetails(sessionID1);
@@ -160,7 +160,7 @@ public class ATM {
             acc2 = bank2.accountDetails(sessionID2);
             account2 = acc2.getAccountNumber();
             while (sessionID2 == -1) {
-                TimeUnit.SECONDS.sleep(1)
+                TimeUnit.SECONDS.sleep(1);
                 sessionID2 = bank2.login(username, password);
             }
             //Print account details
@@ -237,7 +237,7 @@ public class ATM {
                         //Make bank deposit and get updated balance
                         double balance = bank1.deposit(account1, amount, sessionID1);
                         while (balance == -1) {
-                            TimeUnit.SECONDS.sleep(1)
+                            TimeUnit.SECONDS.sleep(1);
                             balance = bank1.deposit(account1, amount, sessionID1);
                         }
                         System.out.println("Successfully deposited E" + amount + " into account " + account1);
@@ -256,7 +256,7 @@ public class ATM {
                         //Make bank deposit and get updated balance
                         double balance = bank2.deposit(account2, amount, sessionID2);
                         while (balance == -1) {
-                            TimeUnit.SECONDS.sleep(1)
+                            TimeUnit.SECONDS.sleep(1);
                             balance = bank2.deposit(account2, amount, sessionID1);
                         }
                         if (!depositSuccess1) {
@@ -280,7 +280,7 @@ public class ATM {
                         //Make bank withdrawal and get updated balance
                         double balance = bank1.withdraw(account1, amount, sessionID1);
                         while (balance == -1) {
-                            TimeUnit.SECONDS.sleep(1)
+                            TimeUnit.SECONDS.sleep(1);
                             balance = bank1.withdraw(account1, amount, sessionID1);
                         }
                         System.out.println("Successfully withdrew E" + amount + " from account " + account1 +
@@ -302,7 +302,7 @@ public class ATM {
                         //Make bank withdrawal and get updated balance
                         double balance = bank2.withdraw(account2, amount, sessionID2);
                         while (balance == -1) {
-                            TimeUnit.SECONDS.sleep(1)
+                            TimeUnit.SECONDS.sleep(1);
                             balance = bank2.withdraw(account2, amount, sessionID1);
                         }
                         if (!withdrawSuccess1) {
@@ -329,7 +329,7 @@ public class ATM {
                         //Get account details from bank
                         Account acc1 = bank1.inquiry(account1,sessionID1);
                         while (acc1 == null) {
-                            TimeUnit.SECONDS.sleep(1)
+                            TimeUnit.SECONDS.sleep(1);
                             acc1 = bank1.inquiry(account1,sessionID1);
                         }
                         System.out.println("--------------------------\nAccount Details:\n--------------------------\n" +
@@ -353,7 +353,7 @@ public class ATM {
                         //System.out.println("inquiry another server");
                         Account acc2 = bank2.inquiry(account2,sessionID2);
                         while (acc2 == null) {
-                            TimeUnit.SECONDS.sleep(1)
+                            TimeUnit.SECONDS.sleep(1);
                             acc2 = bank2.inquiry(account2,sessionID1);
                         }
                         if (!inquirySuccess1) {
